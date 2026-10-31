@@ -72,14 +72,41 @@ flowchart TD
 
 ---
 
-## 4. Quickstart: Local Development
+## 4. Quickstart: One-Command Execution
 
-### 4.1. Prerequisites
+MailRadar provides simple one-command launchers:
+
+### 4.1. Run the Web-Based Version (Dashboard + API)
+```bash
+./mailradar-web
+# or
+make web
+# or
+mailradar web
+```
+This single command automatically starts both the **FastAPI REST API** and the **Next.js Web Dashboard**:
+- **Web Dashboard**: `http://localhost:3000`
+- **REST API & Swagger Docs**: `http://localhost:8000/docs`
+
+### 4.2. Run the Linux CLI Version
+```bash
+./mailradar-cli doctor
+# or
+./mailradar-cli --help
+# or
+make cli
+```
+
+---
+
+## 5. Manual Setup Guide (Alternative)
+
+### 5.1. Prerequisites
 - Python 3.12, 3.13, or 3.14
 - Node.js v20+ with npm
 - Git
 
-### 4.2. Backend Setup
+### 5.2. Backend Setup
 ```bash
 # Clone the repository
 git clone https://github.com/ashishsinghbora/MailRadar.git
@@ -103,7 +130,7 @@ uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 API Documentation will be live at `http://localhost:8000/docs`.
 
-### 4.3. Frontend Setup
+### 5.3. Frontend Setup
 ```bash
 # In a new terminal:
 cd apps/web
@@ -114,13 +141,13 @@ The Web Dashboard will be accessible at `http://localhost:3000`.
 
 ---
 
-## 5. Linux CLI Usage
+## 6. Linux CLI Usage
 
-MailRadar provides a rich Typer-based CLI for developer workflows.
+MailRadar provides a rich Typer-based CLI for developer workflows:
 
 ```bash
 # System Diagnostics & Health Check
-mailradar doctor
+./mailradar-cli doctor
 
 # Initialize Organization Configuration
 mailradar config init

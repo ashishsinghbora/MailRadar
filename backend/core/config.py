@@ -1,5 +1,9 @@
+from pathlib import Path
 from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_DB_FILE = PROJECT_ROOT / "mailradar.db"
 
 
 class Settings(BaseSettings):
@@ -9,8 +13,8 @@ class Settings(BaseSettings):
     secret_key: str = "mailradar-super-secret-key-change-in-production-2026-secure"
     fernet_key: str = "Z3B2Q21RNGV2dmtIUVc2a2F1ckFvUTVwSG9XUlpVbmM="
 
-    # Database
-    database_url: str = "sqlite:///./mailradar.db"
+    # Database (defaults to canonical project root SQLite file)
+    database_url: str = f"sqlite:///{DEFAULT_DB_FILE}"
 
     # Redis & Workers
     redis_url: str = "redis://localhost:6379/0"

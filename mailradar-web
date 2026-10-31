@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -e
+
+# MailRadar - One-Command Web Dashboard & API Runner
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Activate virtualenv if available
+if [ -f "$SCRIPT_DIR/.venv/bin/activate" ]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/.venv/bin/activate"
+fi
+
+export PYTHONPATH="$SCRIPT_DIR:${PYTHONPATH:-}"
+
+echo "=========================================================="
+echo "🚀 Starting MailRadar Web Platform (API + Web Dashboard)..."
+echo "=========================================================="
+
+# Ensure database tables exist
+python3 -c "from backend.database.session import init_db; init_db()"
+
+# Check if web node_modules exists, otherwise install
+if [ ! -d "$SCRIPT_DIR/apps/web/node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    (cd "$SCRIPT_DIR/apps/web" && npm install)
+fi
+
+# Trap signals for graceful shutdown of background processes
+cleanup() {
+    echo ""
+    echo "Shutting down MailRadar services..."
+    if [ -n "$BACKEND_PID" ]; then kill -TERM "$BACKEND_PID" 2>/dev/null || true; fi
+    if [ -n "$FRONTEND_PID" ]; then kill -TERM "$FRONTEND_PID" 2>/dev/null || true; fi
+    exit 0
+}
+trap cleanup SIGINT SIGTERM EXIT
+
+# 1. Start Backend on port 8000
+python3 -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 &
+BACKEND_PID=$!
+
+# 2. Start Frontend on port 3000
+(cd "$SCRIPT_DIR/apps/web" && npm run dev) &
+FRONTEND_PID=$!
+
+echo ""
+echo "✔ Services launched successfully:"
+echo "  • Web Dashboard: http://localhost:3000"
+echo "  • REST API Docs: http://localhost:8000/docs"
+echo ""
+echo "Press Ctrl+C to stop all services."
+
+# Wait for background processes
+wait

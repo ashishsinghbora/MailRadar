@@ -61,6 +61,64 @@ def get_default_org(db):
 
 
 @app.command()
+def web(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="API host bind"),
+    port: int = typer.Option(8000, "--port", "-p", help="API port bind"),
+    web_port: int = typer.Option(3000, "--web-port", help="Web dashboard port"),
+):
+    """Launch the full MailRadar Web Application (Backend API + Web Dashboard)."""
+    import os
+    import signal
+    import subprocess
+    import time
+    from pathlib import Path
+
+    init_db()
+
+    project_root = Path(__file__).resolve().parent.parent.parent
+    web_dir = project_root / "apps" / "web"
+
+    console.print(Panel(
+        f"[bold cyan]Launching MailRadar Web Platform[/bold cyan]\n\n"
+        f"• Web Dashboard: [bold green]http://localhost:{web_port}[/bold green]\n"
+        f"• REST API Docs: [bold blue]http://{host}:{port}/docs[/bold blue]\n\n"
+        f"[dim]Press Ctrl+C to terminate servers.[/dim]",
+        border_style="cyan"
+    ))
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(project_root)
+
+    backend_proc = subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "backend.api.main:app", "--host", host, "--port", str(port)],
+        cwd=str(project_root),
+        env=env
+    )
+
+    frontend_proc = subprocess.Popen(
+        ["npm", "run", "dev", "--", "-p", str(web_port)],
+        cwd=str(web_dir)
+    )
+
+    def cleanup(signum, frame):
+        console.print("\n[yellow]Stopping MailRadar servers...[/yellow]")
+        backend_proc.terminate()
+        frontend_proc.terminate()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, cleanup)
+    signal.signal(signal.SIGTERM, cleanup)
+
+    try:
+        while True:
+            time.sleep(1)
+            if backend_proc.poll() is not None or frontend_proc.poll() is not None:
+                break
+    except KeyboardInterrupt:
+        cleanup(None, None)
+
+
+@app.command()
 def doctor():
     """Perform health and diagnostics checks on MailRadar subsystems."""
     console.print(Panel("[bold cyan]MailRadar Diagnostics (Doctor)[/bold cyan]", border_style="cyan"))

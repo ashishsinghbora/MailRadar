@@ -1,13 +1,18 @@
-.PHONY: help install dev-backend dev-frontend test lint clean docker-up docker-down
+.PHONY: help cli web install dev-backend dev-frontend test lint clean docker-up docker-down
 
 help:
-	@echo "MailRadar Development Commands:"
-	@echo "  make install        Install backend and frontend dependencies"
-	@echo "  make dev-backend    Start FastAPI backend server"
-	@echo "  make dev-frontend   Start Next.js frontend dev server"
+	@echo "MailRadar Commands:"
+	@echo "  ./mailradar-web     Start the full Web Dashboard and API (or 'make web')"
+	@echo "  ./mailradar-cli     Run the Linux CLI (or 'make cli')"
 	@echo "  make test           Run Pytest test suite"
 	@echo "  make docker-up      Spin up stack with Docker Compose"
 	@echo "  make docker-down    Tear down Docker Compose containers"
+
+cli:
+	./mailradar-cli --help
+
+web:
+	./mailradar-web
 
 install:
 	pip install -e .[dev]

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -e
+
+# MailRadar - One-Command CLI Runner
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Activate virtualenv if available
+if [ -f "$SCRIPT_DIR/.venv/bin/activate" ]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/.venv/bin/activate"
+fi
+
+export PYTHONPATH="$SCRIPT_DIR:${PYTHONPATH:-}"
+
+if [ -f "$SCRIPT_DIR/.venv/bin/mailradar" ]; then
+    exec "$SCRIPT_DIR/.venv/bin/mailradar" "$@"
+elif command -v mailradar >/dev/null 2>&1; then
+    exec mailradar "$@"
+else
+    exec python3 -m apps.cli.main "$@"
+fi
